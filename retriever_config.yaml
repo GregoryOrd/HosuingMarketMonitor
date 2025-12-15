@@ -1,0 +1,15 @@
+streetsToAvoid:
+  - "Example1 Rd"
+  - "Example2 Rd"
+
+citiesToAvoid:
+  - "New York City"
+
+min_price: 1000
+max_price: 5000
+
+remax_url: "ny/new-york-real-estate"
+gad_source: 0,
+gad_campaignid: 0,
+gbraid: "",
+gclid: "",

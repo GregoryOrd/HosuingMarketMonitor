@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Prospects</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Liked Prospects</h1>
+<table id="liked-prospects-table">
+    <thead>
+        <tr>
+            <th>Price</th>
+            <th>Address</th>
+            <th>Town</th>
+            <th>Beds</th>
+            <th>Baths</th>
+            <th>Posted</th>
+            <th>Link</th>
+            <th>Notes</th>
+            <th>Mark Liked</th>
+            <th>Mark Neutral</th>
+            <th>Mark Disliked</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<h1>Neutral Prospect</h1>
+<table id="prospects-table">
+    <thead>
+        <tr>
+            <th>Price</th>
+            <th>Address</th>
+            <th>Town</th>
+            <th>Beds</th>
+            <th>Baths</th>
+            <th>Posted</th>
+            <th>Link</th>
+            <th>Notes</th>
+            <th>Mark Liked</th>
+            <th>Mark Neutral</th>
+            <th>Mark Disliked</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<h1>Disliked Prospects</h1>
+<table id="disliked-prospects-table">
+    <thead>
+        <tr>
+            <th>Price</th>
+            <th>Address</th>
+            <th>Town</th>
+            <th>Beds</th>
+            <th>Baths</th>
+            <th>Posted</th>
+            <th>Link</th>
+            <th>Notes</th>
+            <th>Mark Liked</th>
+            <th>Mark Neutral</th>
+            <th>Mark Disliked</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    let prospects = []
+    let likedIds = new Set();
+    let neutralIds = new Set();
+    let dislikedIds = new Set();
+
+    const BASE_API_URL = "http://192.168.1.77:8000"
+    const API_URL = `${BASE_API_URL}/prospects`;
+    const MARK_LIKED_URL = `${BASE_API_URL}/markLiked`;
+    const MARK_NEUTRAL_URL = `${BASE_API_URL}/markNeutral`;
+    const MARK_DISLIKED_URL = `${BASE_API_URL}/markDisliked`;
+    const SAVE_NOTES_URL = `${BASE_API_URL}/saveNotes`;
+
+    const LIKED_STATE = "liked"
+    const NEUTRAL_STATE = "neutral"
+    const DISLIKED_STATE = "disliked"
+
+    function updateIdState(listingId, state)
+    {
+        console.log(`Updating ID State: ${listingId}, ${state}`)
+        if(state == LIKED_STATE)
+        {
+            likedIds.add(listingId)
+            neutralIds.delete(listingId)
+            dislikedIds.delete(listingId)
+        }
+        else if(state == NEUTRAL_STATE)
+        {
+            likedIds.delete(listingId)
+            neutralIds.add(listingId)
+            dislikedIds.delete(listingId)
+        }
+        else if(state == DISLIKED_STATE)
+        {
+            likedIds.delete(listingId)
+            neutralIds.delete(listingId)
+            dislikedIds.add(listingId)
+        }
+    }
+
+    function markState(prospect, state)
+    {
+        console.log(`State: ${state}`)
+        console.log(`Prospect: ${prospect}`)
+        let url = "";
+
+        if(state == LIKED_STATE)
+        {
+            url = MARK_LIKED_URL + "/" + prospect.listingId;  
+        }
+        else if(state == NEUTRAL_STATE)
+        {
+            url = MARK_NEUTRAL_URL + "/" + prospect.listingId;
+        }
+        else if(state == DISLIKED_STATE)
+        {
+            url = MARK_DISLIKED_URL + "/" + prospect.listingId;
+        }
+
+        console.log(`URL: ${url}`)
+        fetch(url, {method: "POST"})
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to mark $${prospect.price} - ${prospect.addr} ${state}`);
+            }
+
+            updateIdState(prospect.listingId, state);
+            console.log(`Liked IDS: ${[...likedIds]}`)
+            console.log(`Neutral IDS: ${[...neutralIds]}`)
+            renderTables();
+        })
+        .catch(err => {
+            document.body.insertAdjacentHTML(
+                "beforeend",
+                `<p style="color:red;">Error: ${err.message}</p>`
+            );
+        });       
+    }
+
+    function markLiked(prospect)
+    {
+        markState(prospect, LIKED_STATE)
+    }
+
+    function markNeutral(prospect)
+    {
+        markState(prospect, NEUTRAL_STATE)
+    }
+
+    function markDisliked(prospect)
+    {
+        markState(prospect, DISLIKED_STATE)
+    } 
+
+    function saveNotes(prospect, input)
+    {
+        console.log("Saving notes")
+        url = SAVE_NOTES_URL + "/" + prospect.listingId;
+        data = {
+            notes: input.value
+        }
+        console.log(`URL: ${url}`)
+        console.log(`JSON: ${JSON.stringify(data)}`)
+        fetch(
+            url, 
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            }
+        )
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to save notes for $${prospect.price} - ${prospect.addr}`);
+            }
+        })
+        .catch(err => {
+            document.body.insertAdjacentHTML(
+                "beforeend",
+                `<p style="color:red;">Error: ${err.message}</p>`
+            );
+        }); 
+    }
+
+    function renderTable(idsList, tableId)
+    {
+        const tbody = document.querySelector(`#${tableId} tbody`);
+        tbody.innerHTML = "";
+
+        prospects.forEach(p => {
+            if(idsList.has(p.listingId))
+            {
+                const row = document.createElement("tr");
+
+                const likeBtn = document.createElement("button");
+                likeBtn.textContent = "Mark Liked";
+                likeBtn.addEventListener("click", () => markLiked(p))
+                const likeActionCell = document.createElement("td");
+                likeActionCell.appendChild(likeBtn);
+
+                const neutralBtn = document.createElement("button");
+                neutralBtn.textContent = "Mark Neutral";
+                neutralBtn.addEventListener("click", () => markNeutral(p))
+                const nuetralActionCell = document.createElement("td");
+                nuetralActionCell.appendChild(neutralBtn);
+
+                const dislikeBtn = document.createElement("button");
+                dislikeBtn.textContent = "Mark Disliked";
+                dislikeBtn.addEventListener("click", () => markDisliked(p))
+                const dislikeActionCell = document.createElement("td");
+                dislikeActionCell.appendChild(dislikeBtn);
+
+                const notesInput = document.createElement("input");
+                notesInput.type = "text";
+                notesInput.value = p.notes
+                notesInput.addEventListener("blur", () => saveNotes(p, notesInput))
+                const notesActionCall = document.createElement("td");
+                notesActionCall.appendChild(notesInput);
+
+                row.innerHTML = `
+                    <td>$${p.price.toLocaleString()}</td>
+                    <td>${p.addr}</td>
+                    <td>${p.town ?? ""}</td>
+                    <td>${p.beds}</td>
+                    <td>${p.baths}</td>
+                    <td>${p.postingDate ?? ""}</td>
+                    <td><a href="${p.url}" target="_blank">View</a></td>
+                `;
+                row.append(notesActionCall)
+                row.append(likeActionCell);
+                row.append(nuetralActionCell);
+                row.append(dislikeActionCell);
+
+                tbody.appendChild(row);
+            }
+        });
+    }
+
+    function renderTables()
+    {
+        renderTable(likedIds, "liked-prospects-table");
+        renderTable(neutralIds, "prospects-table");
+        renderTable(dislikedIds, "disliked-prospects-table");
+    }
+
+    function fetchAndRenderTables()
+    {
+        fetch(API_URL)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load prospects");
+            }
+
+            return response.json()
+        })
+        .then(data => {
+            prospects = data;
+
+            data.forEach( p=> {
+                let state = ""
+                if(p.liked == 1)
+                {
+                    state = LIKED_STATE;
+                }
+                else if(p.liked == 0)
+                {
+                    state = NEUTRAL_STATE;
+                }
+                else if (p.liked == -1)
+                {
+                    state = DISLIKED_STATE;
+                }
+                updateIdState(p.listingId, state)
+            });
+
+            renderTables();
+        })
+        .catch(err => {
+            document.body.insertAdjacentHTML(
+                "beforeend",
+                `<p style="color:red;">Error: ${err.message}</p>`
+            );
+        });
+    }
+
+    fetchAndRenderTables();
+</script>
+
+</body>
+</html>

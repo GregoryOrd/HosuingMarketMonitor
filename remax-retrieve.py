@@ -6,6 +6,8 @@ from db_access import DbAccess
 import remax
 import os
 from remax_config import ConfigData
+from datetime import datetime
+
 
 def diff_prospects_list(old_prospects, new_prospects):
     to_delete = []
@@ -48,6 +50,9 @@ def update_prospects(config_data):
     for p in to_delete:
         db_access.delete_prospect(p)
 
+    for p in price_changes:
+        db_access.insert_prospect(p)
+
     if len(to_add) > 0 or len(to_delete) > 0 or len(price_changes) > 0:
         print(f"{len(price_changes)} price changes, {len(to_add)} additions, {len(to_delete)} deletions")
         to_add = sorted(to_add, key=lambda p: p.price)
@@ -58,4 +63,7 @@ def update_prospects(config_data):
 
     db_access.close()
 
+print("==================================================")
+print("Script started at:", datetime.now())
 update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/retriever_config.yaml")))
+print("==================================================")

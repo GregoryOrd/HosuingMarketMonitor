@@ -5,6 +5,9 @@ import os
 
 
 def generate_changes_summary(changes):
+    if len(changes) <= 0:
+        return ""
+        
     old = changes[0]
     new = changes[1]
 
@@ -51,7 +54,7 @@ This is a real estate listings update for listings matching your criteria (min p
 - {len(deletions)} listing(s) have been removed.
 
 Here is a summary of the price changes:
-{generate_changes_summary(changes)}
+{generate_changes_summary(price_changes)}
 
 Here is a summary of the additions:
 

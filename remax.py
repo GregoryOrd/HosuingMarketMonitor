@@ -20,15 +20,19 @@ def extract_data_from_html(html, streetsFilter, citiesFilter):
             listings = data['props']['pageProps']['dehydratedState']['queries'][1]['state']['data']['results']
             for lst in listings:
                 addr = lst['address']
+                lower_addr = addr.lower()
+                
+                city = lst['mlsCity']
+                lower_city = city.lower()
                 
                 ignore = False
 
                 for str in streetsFilter:
-                    if str in addr:
+                    if str.lower() in lower_addr:
                         ignore = True
 
                 for ct in citiesFilter:
-                    if ct == lst['mlsCity']:
+                    if ct.lower() == lower_city:
                         ignore = True
 
                 if int(lst['baths']) == 0:

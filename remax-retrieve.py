@@ -19,8 +19,9 @@ def diff_prospects_list(old_prospects, new_prospects):
     for old in old_prospects:
         try:
             index = new_prospects.index(old)
-            if old.price != new_prospects[index].price:
-                price_change.append((old, new))
+            new = new_prospects[index]
+            if old.price != new.price:
+                price_changes.append((old, new))
         except ValueError:
             to_delete.append(old)
 
@@ -51,7 +52,8 @@ def update_prospects(config_data):
         db_access.delete_prospect(p)
 
     for p in price_changes:
-        db_access.insert_prospect(p)
+        # Here p is a tuple of (old, new)
+        db_access.insert_prospect(p[1])
 
     if len(to_add) > 0 or len(to_delete) > 0 or len(price_changes) > 0:
         print(f"{len(price_changes)} price changes, {len(to_add)} additions, {len(to_delete)} deletions")

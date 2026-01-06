@@ -7,13 +7,12 @@ import os
 def generate_changes_summary(changes):
     if len(changes) <= 0:
         return ""
-        
-    old = changes[0]
-    new = changes[1]
 
     summary = ""
     for a in changes:
-        summary = summary + f"- ${old.price} changed to ${new.price} for {a.beds} beds, {a.baths} baths, {a.town}, {a.addr}, {a.url}\n\n"
+        old = a[0]
+        new = a[1]
+        summary = summary + f"- ${old.price} changed to ${new.price} for {new.beds} beds, {new.baths} baths, {new.town}, {new.addr}, {new.url}\n\n"
     return summary
 
 def generate_summary(additions):

@@ -21,7 +21,7 @@ def generate_summary(additions):
         summary = summary + f"- ${a.price}, {a.beds} beds, {a.baths} baths, {a.town}, {a.addr}, {a.url}\n\n"
     return summary
 
-def sendEmail(deletions, additions, price_changes, min_price, max_price):
+def sendEmail(deletions, additions, price_changes, min_price, max_price, region):
     file_path = "~/.retriever_creds"
     full_path = os.path.expanduser(file_path)
 
@@ -41,12 +41,12 @@ def sendEmail(deletions, additions, price_changes, min_price, max_price):
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Cc"] = cc_email
-    message["Subject"] = "Real Estate Market Update"
+    message["Subject"] = f"Real Estate Market Update - {region}"
 
     # Email body
     body = f"""Hello,
 
-This is a real estate listings update for listings matching your criteria (min price: ${min_price}, max_price: ${max_price}) in Central Saanich/Sidney on ReMax.
+This is a real estate listings update for listings matching your criteria (min price: ${min_price}, max_price: ${max_price}) in the {region} region on ReMax.
 
 - {len(price_changes)} listing(s) have seen price changes
 - {len(additions)} new listing(s) have been added.

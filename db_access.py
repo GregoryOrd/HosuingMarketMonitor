@@ -1,6 +1,11 @@
 from prospects import Prospect
 import mysql.connector
 
+COMOX_REGION = "Comox"
+SIDNEY_REGION = "Sidney"
+COMOX_TABLE = "prospects_comox"
+SIDNEY_TABLE = "prospects_sidney"
+
 class DbAccess:
     def __init__(self):
         self.conn = None
@@ -21,7 +26,14 @@ class DbAccess:
             self.cursor.close()
             self.conn.close()           
 
-    def query(self, query_str="SELECT * FROM prospects"):
+    def query(self, region):
+        if region == COMOX_REGION:
+            return self.query_with_str(query_str=f"SELECT * FROM {COMOX_TABLE}")
+        elif region == SIDNEY_REGION:
+            return self.query_with_str(query_str=f"SELECT * FROM {SIDNEY_TABLE}")
+
+
+    def query_with_str(self, query_str="SELECT * FROM prospects"):
         if not self.is_started():
             print("Not started at time of query")
             return []
@@ -53,12 +65,18 @@ class DbAccess:
 
         return prospects
 
-    def insert_prospect(self, prospect):
+    def insert_prospect(self, prospect, region):
+        if region == COMOX_REGION:
+            self.insert_prospect_table(prospect, COMOX_TABLE)
+        elif region == SIDNEY_REGION:
+            self.insert_prospect_table(prospect, SIDNEY_TABLE)        
+
+    def insert_prospect_table(self, prospect, table):
         if not self.is_started():
             return False
 
-        sql = """
-            INSERT INTO prospects (
+        sql = f"""
+            INSERT INTO {table} (
                 listing_id,
                 price,
                 addr,
@@ -115,43 +133,40 @@ class DbAccess:
 
         return True
 
-    def delete_prospect(self, p):
+    def delete_prospect(self, prospect, region):
+        if region == COMOX_REGION:
+            self.delete_prospect_table(prospect, COMOX_TABLE)
+        elif region == SIDNEY_REGION:
+            self.delete_prospect_table(prospect, SIDNEY_TABLE) 
+
+    def delete_prospect_table(self, p, table):
         if not self.is_started():
             return False
 
-        sql = "DELETE FROM prospects WHERE listing_id = %s"
+        if table is COMOX_TABLE:
+            sql = "DELETE FROM prospects_comox WHERE listing_id = %s"
+        else:
+            sql = "DELETE FROM prospects_sidney WHERE listing_id = %s"
         self.cursor.execute(sql, (p.listingId,))
         self.conn.commit()
 
-    def markLiked(self, listing_id):
+    def markLiked(self, listing_id, region):
         if not self.is_started():
             return False
 
-        sql = """
-            UPDATE prospects
-            SET liked = 1
-            WHERE listing_id = %(lid)s
-        """
-
-        data = {
-            "lid": listing_id
-        }
-        print(listing_id)
-
-        self.cursor.execute(sql, data)
-        self.conn.commit()
-
-        return True
-
-    def markNeutral(self, listing_id):
-        if not self.is_started():
-            return False
-
-        sql = """
-            UPDATE prospects
-            SET liked = 0
-            WHERE listing_id = %(lid)s
-        """
+        if region == COMOX_REGION:
+            sql = """
+                UPDATE prospects_comox
+                SET liked = 1
+                WHERE listing_id = %(lid)s
+            """
+        
+        if region == SIDNEY_REGION:
+            sql = """
+                UPDATE prospects_sidney
+                SET liked = 1
+                WHERE listing_id = %(lid)s
+            """
 
         data = {
             "lid": listing_id
@@ -162,15 +177,23 @@ class DbAccess:
 
         return True
 
-    def markDisliked(self, listing_id):
+    def markNeutral(self, listing_id, region):
         if not self.is_started():
             return False
 
-        sql = """
-            UPDATE prospects
-            SET liked = -1
-            WHERE listing_id = %(lid)s
-        """
+        if region == COMOX_REGION:
+            sql = """
+                UPDATE prospects_comox
+                SET liked = 0
+                WHERE listing_id = %(lid)s
+            """
+        
+        if region == SIDNEY_REGION:
+            sql = """
+                UPDATE prospects_sidney
+                SET liked = 0
+                WHERE listing_id = %(lid)s
+            """
 
         data = {
             "lid": listing_id
@@ -181,15 +204,50 @@ class DbAccess:
 
         return True
 
-    def saveNotes(self, listing_id, notes):
+    def markDisliked(self, listing_id, region):
         if not self.is_started():
             return False
 
-        sql = """
-            UPDATE prospects
-            SET notes = %(nts)s
-            WHERE listing_id = %(lid)s
-        """
+        if region == COMOX_REGION:
+            sql = """
+                UPDATE prospects_comox
+                SET liked = -1
+                WHERE listing_id = %(lid)s
+            """
+        
+        if region == SIDNEY_REGION:
+            sql = """
+                UPDATE prospects_sidney
+                SET liked = -1
+                WHERE listing_id = %(lid)s
+            """
+
+        data = {
+            "lid": listing_id
+        }
+
+        self.cursor.execute(sql, data)
+        self.conn.commit()
+
+        return True
+
+    def saveNotes(self, listing_id, notes, region):
+        if not self.is_started():
+            return False
+
+        if region == COMOX_REGION:
+            sql = """
+                UPDATE prospects_comox
+                SET notes = %(nts)s
+                WHERE listing_id = %(lid)s
+            """
+        
+        if region == SIDNEY_REGION:
+            sql = """
+                UPDATE prospects_sidney
+                SET notes = %(nts)s
+                WHERE listing_id = %(lid)s
+            """
 
         data = {
             "nts": notes,

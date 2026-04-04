@@ -72,10 +72,10 @@ def query_remax(config_data):
     }
 
     base_params = {
-        "gad_source": config_data.gad_source,
-        "gad_campaignid": config_data.gad_campaignid,
-        "gbraid": config_data.gbraid,
-        "gclid": config_data.gclid,
+        # "gad_source": config_data.gad_source,
+        # "gad_campaignid": config_data.gad_campaignid,
+        # "gbraid": config_data.gbraid,
+        # "gclid": config_data.gclid,
         "lang": "en",
         "priceMin": config_data.min_price,
         "priceMax": config_data.max_price,
@@ -106,4 +106,5 @@ def query_remax(config_data):
         for d in data:
             prospects.append(d)
 
+    print(f"Found: {len(prospects)} Prospects")
     return prospects

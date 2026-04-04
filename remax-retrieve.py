@@ -8,6 +8,8 @@ import os
 from remax_config import ConfigData
 from datetime import datetime
 
+COMOX_REGION = "Comox"
+SIDNEY_REGION = "Sidney"
 
 def diff_prospects_list(old_prospects, new_prospects):
     to_delete = []
@@ -31,7 +33,9 @@ def diff_prospects_list(old_prospects, new_prospects):
 
     return to_delete, to_add, price_changes
 
-def update_prospects(config_data):
+def update_prospects(config_data, region):
+    print(f"{region} Script started at:", datetime.now())
+
     if config_data is None:
         print("Configuration Data Not Set.")
         return
@@ -39,33 +43,33 @@ def update_prospects(config_data):
     db_access = DbAccess()
     db_access.start()
 
-    old_prospects = db_access.query()
+    old_prospects = db_access.query(region)
 
     new_prospects = remax.query_remax(config_data)
 
     to_delete, to_add, price_changes = diff_prospects_list(old_prospects, new_prospects)
 
     for p in to_add:
-        db_access.insert_prospect(p)
+        db_access.insert_prospect(p, region)
 
     for p in to_delete:
-        db_access.delete_prospect(p)
+        db_access.delete_prospect(p, region)
 
     for p in price_changes:
         # Here p is a tuple of (old, new)
-        db_access.insert_prospect(p[1])
+        db_access.insert_prospect(p[1], region)
 
     if len(to_add) > 0 or len(to_delete) > 0 or len(price_changes) > 0:
         print(f"{len(price_changes)} price changes, {len(to_add)} additions, {len(to_delete)} deletions")
         to_add = sorted(to_add, key=lambda p: p.price)
         to_delete = sorted(to_delete, key=lambda p: p.price)
-        sendEmail(to_delete, to_add, price_changes, config_data.min_price, config_data.max_price)
+        sendEmail(to_delete, to_add, price_changes, config_data.min_price, config_data.max_price, region)
     else:
         print("No changes.")
 
     db_access.close()
 
 print("==================================================")
-print("Script started at:", datetime.now())
-update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/retriever_config.yaml")))
+update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/sidney_retriever_config.yaml")), SIDNEY_REGION)
+update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/comox_retriever_config.yaml")), COMOX_REGION)
 print("==================================================")

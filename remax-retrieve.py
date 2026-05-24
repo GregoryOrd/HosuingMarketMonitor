@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from prospects import Prospect
 from email_sender import sendEmail

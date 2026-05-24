@@ -1,0 +1,18 @@
+Features To Implement
+-----------------------
+Nothing right now
+
+
+Defects
+---------
+Nothing right now
+
+
+Refactors
+-----------
+1) Organize repo into folders instead of flat repo
+
+
+Tests
+----------
+Nothing right now

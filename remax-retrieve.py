@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3   
 
 from prospects import Prospect
 from email_sender import sendEmail
@@ -71,5 +71,5 @@ def update_prospects(config_data, region):
 
 print("==================================================")
 update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/sidney_retriever_config.yaml")), SIDNEY_REGION)
-update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/comox_retriever_config.yaml")), COMOX_REGION)
+# update_prospects(ConfigData.fromConfigFile(os.path.expanduser("~/comox_retriever_config.yaml")), COMOX_REGION)
 print("==================================================")

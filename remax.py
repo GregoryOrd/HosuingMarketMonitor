@@ -9,22 +9,29 @@ def extract_data_from_html(html, streetsFilter, citiesFilter):
 
     results = []
 
-    scripts = soup.find_all("script", type="application/json")
+    scripts = soup.find_all("script", type="application/ld+json")
 
+    i = 0
     for script in scripts:
         if not script.string:
             continue
 
         try:
             data = json.loads(script.string)
-            listings = data['props']['pageProps']['dehydratedState']['queries'][1]['state']['data']['results']
+            with open(f"sidney{i}.data", "w") as f:
+                f.write(json.dumps(data['mainEntity']['itemListElement']))
+
+            i += 1
+
+            listings = data['mainEntity']['itemListElement']
             for lst in listings:
-                addr = lst['address']
+                itemOffered = lst['item']['offers']['itemOffered']
+                addr = itemOffered['address']['streetAddress']
                 lower_addr = addr.lower()
-                
-                city = lst['mlsCity']
+              
+                city = itemOffered['address']['addressLocality']
                 lower_city = city.lower()
-                
+               
                 ignore = False
 
                 for str in streetsFilter:
@@ -35,29 +42,41 @@ def extract_data_from_html(html, streetsFilter, citiesFilter):
                     if ct.lower() == lower_city:
                         ignore = True
 
-                if int(lst['baths']) == 0:
+                baths = itemOffered['numberOfBathroomsTotal']
+                if int(baths) == 0:
                     ignore = True
 
-                if int(lst['beds']) == 0:
+                beds = itemOffered['numberOfBedrooms']
+                if int(beds) == 0:
                     ignore = True
+
+                url = lst['item']['url']
+                listingId = lst['item']['identifier']['value']  
+                price = lst['item']['offers']['price']
+                size_sq_ft = itemOffered['floorSize']['value']
 
                 if not ignore:
                     results.append(Prospect(
-                        price=lst['listPrice'], 
-                        addr=lst['address'], 
-                        beds=lst['beds'], 
-                        baths=lst['baths'], 
-                        town=lst['mlsCity'], 
-                        url='www.remax.ca/' + lst['detailUrl'], 
-                        postingDate=lst['listingDate'],
-                        listingId=lst['listingId'],
-                        lat=lst['lat'],
-                        long=lst['lng'],
-                        liked=0
+                        price=price, 
+                        addr=addr, 
+                        beds=beds, 
+                        baths=baths, 
+                        town=city, 
+                        url=url, 
+                        listingId=listingId,
+                        size_sq_ft=size_sq_ft,
+                        lat=0,
+                        lon=0,
+                        postingDate='',
+                        liked=0,
                     ))
-        except json.JSONDecodeError:
+                    print(f"Adding {addr} for ${price}")
+                else:
+                    print(f"Ignoring {addr} for ${price}")
+        except (json.JSONDecodeError, KeyError, TypeError):
             continue
 
+    print("Returning results")
     return results
 
 def query_remax(config_data):
@@ -99,12 +118,19 @@ def query_remax(config_data):
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
 
-        data = extract_data_from_html(response.text, config_data.streetsToAvoid, config_data.citiesToAvoid)
+        f = open("sidney.html")
+        # if  response.text == '':
+        #     print("Error. No response from remax website.")
+        #     break
+
+        data = extract_data_from_html(f.read(), config_data.streetsToAvoid, config_data.citiesToAvoid)
         if len(data) == 0:
             break
 
         for d in data:
             prospects.append(d)
+
+        break
 
     print(f"Found: {len(prospects)} Prospects")
     return prospects

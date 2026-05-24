@@ -52,10 +52,10 @@ class DbAccess:
                 baths=row["baths"],
                 town=row["town"],
                 url=row["url"] if row["url"].startswith("http") else f"https://{row['url']}",
-                postingDate=str(row["posting_date"]),
-                listingId=row["listing_id"],
+                postingDate=str(row["postingDate"]),
+                listingId=row["listingId"],
                 lat=row["lat"],
-                long=row["lon"],
+                lon=row["lon"],
                 liked=row['liked']
             )
             # Optional: load size_sq_ft and notes if needed
@@ -77,7 +77,7 @@ class DbAccess:
 
         sql = f"""
             INSERT INTO {table} (
-                listing_id,
+                listingId,
                 price,
                 addr,
                 town,
@@ -86,12 +86,12 @@ class DbAccess:
                 size_sq_ft,
                 notes,
                 url,
-                posting_date,
+                postingDate,
                 lat,
                 lon,
                 liked
             ) VALUES (
-                %(listing_id)s,
+                %(listingId)s,
                 %(price)s,
                 %(addr)s,
                 %(town)s,
@@ -100,21 +100,21 @@ class DbAccess:
                 %(size_sq_ft)s,
                 %(notes)s,
                 %(url)s,
-                %(posting_date)s,
+                %(postingDate)s,
                 %(lat)s,
                 %(lon)s,
                 0
             )
             ON DUPLICATE KEY UPDATE
                 price = VALUES(price),
-                posting_date = VALUES(posting_date),
+                postingDate = VALUES(postingDate),
                 lat = VALUES(lat),
                 lon = VALUES(lon),
-                updated_at = CURRENT_TIMESTAMP
+                updatedAt = CURRENT_TIMESTAMP
         """
 
         data = {
-            "listing_id": prospect.listingId,
+            "listingId": prospect.listingId,
             "price": prospect.price,
             "addr": prospect.addr,
             "town": prospect.town,
@@ -123,9 +123,9 @@ class DbAccess:
             "size_sq_ft": prospect.size_sq_ft,
             "notes": prospect.notes,
             "url": prospect.url,
-            "posting_date": prospect.postingDate,
+            "postingDate": prospect.postingDate,
             "lat": prospect.lat,
-            "lon": prospect.long
+            "lon": prospect.lon
         }
 
         self.cursor.execute(sql, data)
@@ -144,13 +144,13 @@ class DbAccess:
             return False
 
         if table is COMOX_TABLE:
-            sql = "DELETE FROM prospects_comox WHERE listing_id = %s"
+            sql = "DELETE FROM prospects_comox WHERE listingId = %s"
         else:
-            sql = "DELETE FROM prospects_sidney WHERE listing_id = %s"
+            sql = "DELETE FROM prospects_sidney WHERE listingId = %s"
         self.cursor.execute(sql, (p.listingId,))
         self.conn.commit()
 
-    def markLiked(self, listing_id, region):
+    def markLiked(self, listingId, region):
         if not self.is_started():
             return False
 
@@ -158,18 +158,18 @@ class DbAccess:
             sql = """
                 UPDATE prospects_comox
                 SET liked = 1
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
         
         if region == SIDNEY_REGION:
             sql = """
                 UPDATE prospects_sidney
                 SET liked = 1
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
 
         data = {
-            "lid": listing_id
+            "lid": listingId
         }
 
         self.cursor.execute(sql, data)
@@ -177,7 +177,7 @@ class DbAccess:
 
         return True
 
-    def markNeutral(self, listing_id, region):
+    def markNeutral(self, listingId, region):
         if not self.is_started():
             return False
 
@@ -185,18 +185,18 @@ class DbAccess:
             sql = """
                 UPDATE prospects_comox
                 SET liked = 0
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
         
         if region == SIDNEY_REGION:
             sql = """
                 UPDATE prospects_sidney
                 SET liked = 0
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
 
         data = {
-            "lid": listing_id
+            "lid": listingId
         }
 
         self.cursor.execute(sql, data)
@@ -204,7 +204,7 @@ class DbAccess:
 
         return True
 
-    def markDisliked(self, listing_id, region):
+    def markDisliked(self, listingId, region):
         if not self.is_started():
             return False
 
@@ -212,18 +212,18 @@ class DbAccess:
             sql = """
                 UPDATE prospects_comox
                 SET liked = -1
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
         
         if region == SIDNEY_REGION:
             sql = """
                 UPDATE prospects_sidney
                 SET liked = -1
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
 
         data = {
-            "lid": listing_id
+            "lid": listingId
         }
 
         self.cursor.execute(sql, data)
@@ -231,7 +231,7 @@ class DbAccess:
 
         return True
 
-    def saveNotes(self, listing_id, notes, region):
+    def saveNotes(self, listingId, notes, region):
         if not self.is_started():
             return False
 
@@ -239,19 +239,19 @@ class DbAccess:
             sql = """
                 UPDATE prospects_comox
                 SET notes = %(nts)s
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
         
         if region == SIDNEY_REGION:
             sql = """
                 UPDATE prospects_sidney
                 SET notes = %(nts)s
-                WHERE listing_id = %(lid)s
+                WHERE listingId = %(lid)s
             """
 
         data = {
             "nts": notes,
-            "lid": listing_id
+            "lid": listingId
         }
 
         self.cursor.execute(sql, data)

@@ -11,7 +11,7 @@ class Prospect(BaseModel):
     postingDate: str
     listingId: str
     lat: float
-    long: float
+    lon: float
     liked: int
 
     notes: str = ""
@@ -22,7 +22,7 @@ class Prospect(BaseModel):
             f"Prospect({self.price},{self.addr},{self.beds},"
             f"{self.baths},{self.town},{self.url},"
             f"{self.postingDate},{self.listingId},"
-            f"{self.lat},{self.long},{self.liked})"
+            f"{self.lat},{self.lon},{self.liked})"
         )
 
     def __eq__(self, other) -> bool:

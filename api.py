@@ -1,3 +1,6 @@
+import sys
+sys.path.append(".")
+
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -70,12 +73,12 @@ def get_prospects():
 # ----------------------------
 # Mark a Prospect as Liked
 # ----------------------------
-@app.post("/markLiked/{listing_id}/{region}")
-def markLiked(listing_id: str, region: str):
-    print(f"Listing ID: {listing_id}")
+@app.post("/markLiked/{listingId}/{region}")
+def markLiked(listingId: str, region: str):
+    print(f"Listing ID: {listingId}")
     db_access = DbAccess()
     db_access.start()
-    prospects = db_access.markLiked(listing_id, region)
+    prospects = db_access.markLiked(listingId, region)
     db_access.close()
 
     return {"status":"ok"}
@@ -83,11 +86,11 @@ def markLiked(listing_id: str, region: str):
 # ----------------------------
 # Mark a Prospect as Neutral
 # ----------------------------
-@app.post("/markNeutral/{listing_id}/{region}")
-def markLiked(listing_id: str, region: str):
+@app.post("/markNeutral/{listingId}/{region}")
+def markLiked(listingId: str, region: str):
     db_access = DbAccess()
     db_access.start()
-    prospects = db_access.markNeutral(listing_id, region)
+    prospects = db_access.markNeutral(listingId, region)
     db_access.close()
 
     return {"status":"ok"}
@@ -95,11 +98,11 @@ def markLiked(listing_id: str, region: str):
 # ----------------------------
 # Mark a Prospect as Disliked
 # ----------------------------
-@app.post("/markDisliked/{listing_id}/{region}")
-def markLiked(listing_id: str, region: str):
+@app.post("/markDisliked/{listingId}/{region}")
+def markLiked(listingId: str, region: str):
     db_access = DbAccess()
     db_access.start()
-    prospects = db_access.markDisliked(listing_id, region)
+    prospects = db_access.markDisliked(listingId, region)
     db_access.close()
 
     return {"status":"ok"}
@@ -107,12 +110,12 @@ def markLiked(listing_id: str, region: str):
 # ----------------------------
 # Mark a Prospect as Disliked
 # ----------------------------
-@app.post("/saveNotes/{listing_id}/{region}")
-def saveNotes(listing_id: str, region: str, req: SaveNotesRequest):
+@app.post("/saveNotes/{listingId}/{region}")
+def saveNotes(listingId: str, region: str, req: SaveNotesRequest):
     print("Received Save Notes Request")
     db_access = DbAccess()
     db_access.start()
-    prospects = db_access.saveNotes(listing_id, req.notes, region)
+    prospects = db_access.saveNotes(listingId, req.notes, region)
     db_access.close()
 
     return {"status":"ok"}
